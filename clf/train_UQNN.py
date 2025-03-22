@@ -48,7 +48,10 @@ torch.manual_seed(1)
 np.random.seed(1)
 
 #Get train set and create Dataset and DataLoader
-train = pd.read_csv('./data/mnist_train.csv').drop('Unnamed: 0', axis = 1)
+train = pd.read_csv('./data/train_1.csv').drop('Unnamed: 0', axis = 1)
+for i in range(4):
+ subset = pd.read_csv(f'./data/train_{i+2}.csv').drop('Unnamed: 0', axis = 1)
+ train = pd.concat([train, subset])
 test = pd.read_csv('./data/mnist_test.csv').drop('Unnamed: 0', axis = 1)
 
 train_set = mnist_dataset(train)
