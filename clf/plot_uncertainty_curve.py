@@ -294,7 +294,7 @@ lambda_c = 1.2
 num_samples  = 100
 num_classes = 10
 
-model = UANN_Classifier(num_classes = num_classes,
+model = UQNN(num_classes = num_classes,
                  lambda_u = lambda_u, 
                  lambda_c = lambda_c, 
                  num_samples = num_samples,
