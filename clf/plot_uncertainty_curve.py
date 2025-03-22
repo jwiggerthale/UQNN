@@ -280,7 +280,10 @@ torch.manual_seed(1)
 np.random.seed(1)
 
 #Get data and create data loader
-train = pd.read_csv('/t1/erlangen/users/jwiggerthale/TestDatasets/MNIST/mnist_train.csv').drop('Unnamed: 0', axis = 1)
+train = pd.read_csv('./data/train_1.csv').drop('Unnamed: 0', axis = 1)
+for i in range(4):
+ subset = pd.read_csv(f'./data/train_{i+2}.csv').drop('Unnamed: 0', axis = 1)
+ train = pd.concat([train, subset])
 test = pd.read_csv('/t1/erlangen/users/jwiggerthale/TestDatasets/MNIST/mnist_test.csv').drop('Unnamed: 0', axis = 1)
 train_set = rotation_mnist_dataset(train, angles = [20])
 test_set = rotation_mnist_dataset(test, angles = [20])
@@ -300,7 +303,7 @@ model = UQNN(num_classes = num_classes,
                  num_samples = num_samples,
                  file_path = './clf')
 
-model.load_state_dict(torch.load('./Clf_final_pretrained/model_pretrained.pth'))
+model.load_state_dict(torch.load('./models/UQNN_clf.pth'))
 model.eval() 
 
 #Evaluate UQNN
