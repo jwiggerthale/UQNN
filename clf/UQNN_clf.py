@@ -33,7 +33,7 @@ Initialize with:
     dropout_rate: float = 0.1, --> dropout rate of dropout layers
     file_path: str = 'Model' --> path where models and model definition are stored
 '''
-class UANN_Classifier(nn.Module):
+class UQNN(nn.Module):
     def __init__(self, 
                  num_classes: int = 10,
                  lambda_u: float = 0.2, 
