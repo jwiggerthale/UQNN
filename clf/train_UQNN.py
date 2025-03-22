@@ -13,7 +13,7 @@ When executing script, performance will be printed in console after each epoch a
 #Import libraries
 import numpy as np
 from torch.utils.data import DataLoader, Dataset
-from UncertaintyAwareClassificator import MyClassifier
+from UQNN_clf import UQNN
 import pandas as pd
 from torchvision import transforms
  
@@ -70,7 +70,7 @@ num_classes = 10
 
 
 #Create classifier and train
-my_classifier = MyClassifier(num_classes = num_classes,
+my_classifier = UQNN(num_classes = num_classes,
                  lambda_u = lambda_u, 
                  lambda_c = lambda_c, 
                  num_samples = num_samples, 
