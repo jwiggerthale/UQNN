@@ -1,0 +1,61 @@
+training: True
+_parameters: OrderedDict()
+_buffers: OrderedDict()
+_backward_hooks: OrderedDict()
+_forward_hooks: OrderedDict()
+_forward_pre_hooks: OrderedDict()
+_state_dict_hooks: OrderedDict()
+_load_state_dict_pre_hooks: OrderedDict()
+_modules: OrderedDict([('feature_extractor', LeNet5(
+  (layer1): Sequential(
+    (0): Conv2d(1, 6, kernel_size=(5, 5), stride=(1, 1))
+    (1): BatchNorm2d(6, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    (2): ReLU()
+    (3): MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)
+  )
+  (layer2): Sequential(
+    (0): Conv2d(6, 16, kernel_size=(5, 5), stride=(1, 1))
+    (1): BatchNorm2d(16, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    (2): ReLU()
+    (3): MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)
+  )
+  (fc): Linear(in_features=256, out_features=120, bias=True)
+  (relu): ReLU()
+  (fc1): Linear(in_features=120, out_features=84, bias=True)
+  (relu1): ReLU()
+  (dropout): Dropout(p=0.1, inplace=False)
+)), ('classification_head', Sequential(
+  (0): Linear(in_features=84, out_features=60, bias=True)
+  (1): ReLU()
+  (2): Linear(in_features=60, out_features=10, bias=True)
+)), ('uncertainty_head', Sequential(
+  (0): Linear(in_features=84, out_features=80, bias=True)
+  (1): ReLU()
+  (2): Linear(in_features=80, out_features=60, bias=True)
+  (3): ReLU()
+  (4): Linear(in_features=60, out_features=10, bias=True)
+))])
+clf_optim: Adam (
+Parameter Group 0
+    amsgrad: False
+    betas: (0.9, 0.999)
+    eps: 1e-08
+    lr: 0.001
+    weight_decay: 0
+)
+uncertainty_optim: Adam (
+Parameter Group 0
+    amsgrad: False
+    betas: (0.9, 0.999)
+    eps: 1e-08
+    lr: 0.002
+    weight_decay: 0
+)
+epoch: 0
+is_converged: False
+clf_losses: []
+combined_losses: []
+num_samples: 100
+lambda_u: 1.2
+lambda_c: 0.4
+file_path: /t1/erlangen/users/jwiggerthale/Uncertainty/./Clf_final_pretrained
