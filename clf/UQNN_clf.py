@@ -41,7 +41,7 @@ class UQNN(nn.Module):
                 num_samples: int = 10000,
                 dropout_rate: float = 0.1,
                 file_path: str = 'Model'):
-        super(UANN_Classifier, self).__init__()
+        super(UQNN, self).__init__()
 
         #Define model structure
         #--> feature extractor = CNN with dropout, heads = fully conneted layers
