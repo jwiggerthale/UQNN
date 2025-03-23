@@ -13,7 +13,7 @@ from torch.utils.data import DataLoader, Dataset
 from typing import Union, Callable, Tuple, Optional, Text, Sequence, Dict
 import numpy as np
 import pandas as pd
-from UANN_Classification import UANN_Classifier
+from UQNN_clf import UQNN
 import torch
 import torch.nn as nn
 from torch.nn import functional as F
