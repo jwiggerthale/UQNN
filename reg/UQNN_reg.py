@@ -395,7 +395,16 @@ class UQNN(nn.Module):
         
         return mean_preds, sigma, mean_features
     
-    
+    '''
+    Function which allows to get variables to test performance 
+    Call with: 
+         data_loader --> data loader containing the samples to be tested
+    Returns: 
+         uncertainties --> uncertainties predicted by uncertainty head
+         sigmas --> std from predictions with MC dropout
+         preds --> prediction on each sample
+         labels --> label for each sample
+    '''
     def test_performance(self, 
                          data_loader: DataLoader):
         preds = []
@@ -412,7 +421,6 @@ class UQNN(nn.Module):
             uncertainties.extend([u.item() for u in uncertainty])
             sigmas.append(sigma)
             
-        #if(plot):
         return    uncertainties, sigmas, preds, labels
     
     
