@@ -114,10 +114,6 @@ def get_dataloader(x, y,
 
 
 
-#Reproducibility
-torch.manual_seed(17)
-np.random.seed(17)
-
 #Get data
 print ("Loading data and other hyperparameters...")
 # Data and related information
@@ -162,6 +158,10 @@ my_regressor = MyRegressor(input_dim = len(X[0]),
 
 f = './models/UQNN_clf.pth'
 my_regressor.load_state_dict(torch.load(f))
+
+#Reproducibility
+torch.manual_seed(17)
+np.random.seed(17)
 
 #get preditions and uncertainties from UQNN
 preds = []
