@@ -163,35 +163,39 @@ my_regressor.load_state_dict(torch.load(f))
 torch.manual_seed(17)
 np.random.seed(17)
 
-#get preditions and uncertainties from UQNN
-preds = []
-uncertainties = []
-labels = []
+#Get predictions and uncertainties from UQNN
+preds_val = []
+uncertainties_val = []
+labels_val = []
+start = datetime.now()
 for x, y in iter(val_loader):
-    pred, un = my_regressor.forward(x)
-    preds.extend([p.item() for p in pred])
-    uncertainties.extend([u.item() for u in un])
-    labels.extend([l.item() for l in y])
-
-#Put predictions, labels and uncertainties in np.array and calculate errors of predictions
-labels = np.array(labels)
-preds = np.array(preds)
-uncertainties = np.array(uncertainties)
-errors = abs(labels - preds)
-
-#Get predictions and uncertainties from MC dropout and calculate error of predictions
-_, _, var, preds_mc, _, all_preds = my_regressor.mc_predict(val_loader)
-uncertainties_mc = np.array(all_preds).var(axis = 1)
-errors_mc = abs(labels - preds_mc)
-
-#Get srcc  from MC dropout and uncertainty head 
-scrr = spearmanr(uncertainties, errors)
-scrr_mc = spearmanr(uncertainties_mc, errors_mc)
+  pred, un = my_regressor.forward(x)
+  preds_val.extend([p.item() for p in pred])
+  uncertainties_val.extend([u.item() for u in un])
+  labels_val.extend([l.item() for l in y])
+end = datetime.now()
+delta_uqnn = end - start
   
-    
-#print results 
-print(f'model: {f}
-      \n scrr UQNN: {scrr}\
-          \n scrr MC: {scrr_mc}\n\n')
+labels_val = np.array(labels_val)
+preds_val = np.array(preds_val)
+uncertainties_val = np.array(uncertainties_val)
+errors_val = abs(labels_val - preds_val)
 
-             
+#Get predictions and uncertainties from MC dropout
+start = datetime.now()
+_, _, var, preds_mc, _, all_preds = my_regressor.mc_predict(val_loader)
+end = datetime.now()
+uncertainties_mc = np.array(all_preds).var(axis = 1)
+errors_mc = abs(labels_val - preds_mc)
+delta_mc = end - start
+
+#Calculate SRCC
+scrr_val = spearmanr(uncertainties_val, errors_val)
+scrr_mc = spearmanr(uncertainties_mc, errors_mc)
+
+  
+#print results
+print(f'seed: 17\nscrr outliers: {scrr_val} (took {delta_uqnn})\
+        \n scrr inliers mc: {scrr_mc} (took {delta_mc})\n\n')
+
+       
