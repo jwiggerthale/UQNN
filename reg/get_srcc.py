@@ -164,34 +164,34 @@ f = './models/UQNN_clf.pth'
 my_regressor.load_state_dict(torch.load(f))
 
 #get preditions and uncertainties from UQNN
-preds_train = []
-uncertainties_train = []
-labels_train = []
-for x, y in iter(train_loader):
+preds = []
+uncertainties = []
+labels = []
+for x, y in iter(val_loader):
     pred, un = my_regressor.forward(x)
-    preds_train.extend([p.item() for p in pred])
-    uncertainties_train.extend([u.item() for u in un])
-    labels_train.extend([l.item() for l in y])
+    preds.extend([p.item() for p in pred])
+    uncertainties.extend([u.item() for u in un])
+    labels.extend([l.item() for l in y])
 
 #Put predictions, labels and uncertainties in np.array and calculate errors of predictions
-labels_train = np.array(labels_train)
-preds_train = np.array(preds_train)
-uncertainties_train = np.array(uncertainties_train)
-errors_train = abs(labels_train - preds_train)
+labels = np.array(labels)
+preds = np.array(preds)
+uncertainties = np.array(uncertainties)
+errors = abs(labels - preds)
 
 #Get predictions and uncertainties from MC dropout and calculate error of predictions
-_, _, var, preds_mc, _, all_preds = my_regressor.mc_predict(train_loader)
+_, _, var, preds_mc, _, all_preds = my_regressor.mc_predict(val_loader)
 uncertainties_mc = np.array(all_preds).var(axis = 1)
-errors_mc = abs(labels_train - preds_mc)
+errors_mc = abs(labels - preds_mc)
 
 #Get srcc  from MC dropout and uncertainty head 
-scrr_train = spearmanr(uncertainties_train, errors_train)
+scrr = spearmanr(uncertainties, errors)
 scrr_mc = spearmanr(uncertainties_mc, errors_mc)
   
     
 #print results 
 print(f'model: {f}
-      \n scrr inliers: {scrr_train}\
-          \n scrr inliers mc: {scrr_mc}\n\n')
+      \n scrr UQNN: {scrr}\
+          \n scrr MC: {scrr_mc}\n\n')
 
              
