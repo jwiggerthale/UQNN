@@ -132,11 +132,39 @@ class UQNN(nn.Module):
                 self.is_converged = True
         '''
 
+
+    '''
+    Loss function for main training stage
+    Automatically called in training
+    Called with: 
+        mu: mean prediction from MC dropout
+        label: actual label
+        sigma: variance from MC dropout
+        uncertainty: uncertainty estiation from uncertainty head
+    Returns:
+        combined loss as weighted sum of mse loss for regression and mse loss for uncertainty estimation
+    '''
     def combined_loss(self, mu, label, sigma, uncertainty):
         reg_loss = F.mse_loss(mu, label) * self.lambda_r
         uncertainty_loss = F.mse_loss(sigma, uncertainty) * self.lambda_u
         return(uncertainty_loss + reg_loss).mean()
-    
+
+    '''
+    Functon which makes prediction on samples from data loader using MC dropout
+    Function also calculates performance metrics
+    Required for training the model
+    Called automatically during training, can also be used for other purposes
+    Call with: 
+         test_loader --> data loader containing samples to be tested
+         tau --> precision parameter, for more information see Gal et al. Dropout as Bayesian Approximation
+    Returns: 
+         rmse --> rmse on samples
+         test_ll --> log likelihood 
+         v --> varaince from predictions made with MC dropout
+         MC_pred --> mean prediction from all predictions made with MC dropout
+         mean_features --> mean features extracted by feature extractor, required for making prediction usin uncertainty head
+         all_preds --> all predictions made by the model (may be useful for other tasks)
+    '''
     def mc_predict(self, 
                    test_loader: DataLoader, 
                    tau: float = 1.0):
@@ -172,6 +200,18 @@ class UQNN(nn.Module):
         
         return rmse, test_ll, v, MC_pred, mean_features, all_preds
 
+    '''
+    Function which trains the model
+    Call with: 
+        train_loader: Dataloader --> DataLoader containing the train set
+        test_loader: Dataloader --> DataLoader containing the test set
+        num_epochs: int --> number of epochs 
+    Function 
+        Conducts pre-training
+        Conducts main training
+        Saves model if performance is sufficient
+        Writes performance in console after every epoch
+    '''
     def train_model(self, 
               train_loader,
               test_loader: DataLoader = None,
@@ -179,11 +219,9 @@ class UQNN(nn.Module):
         best_loss_reg = np.inf
         best_ll_combined = -np.inf
         best_loss_combined = np.inf
+                   
         reg_params = list(self.feature_extractor.parameters()) + list(self.regression_head.parameters())
-        #uncertainty_params = list(self.fc1.parameters()) + list(self.fc2.parameters()) + list(self.fc3.parameters()) + list(self.fc4.parameters()) + list(self.uncertainty_head.parameters())
-        #uncertainty_params =  list(self.fc4.parameters()) + list(self.uncertainty_head.parameters())
         uncertainty_params =  list(self.feature_extractor.parameters())+ list(self.uncertainty_head.parameters()) + list(self.regression_head.parameters())
-
         self.reg_optim = optim.Adam(reg_params, lr=0.001, weight_decay=1e-2, betas=(0.9, 0.999), eps=1e-7)
         self.uncertainty_optim = optim.Adam(uncertainty_params, lr=0.001)#, weight_decay=1e-2, betas=(0.9, 0.999), eps=1e-7)
         for epoch in range(num_epochs):
@@ -293,44 +331,56 @@ class UQNN(nn.Module):
                 print(f'Log Likelihood: {ll}\nExplained Variance Uncerainty: {ev_uncertainty}\nExplained Variance Regression: {ev_reg}\nValidation Loss: {test_loss}\nTrain Loss: {train_loss}\n\n') 
                 self.combined_losses.append(test_loss)
     
-        """
-        Falls mc_dropout=True, wird MC-Dropout aktiviert und mehrere Vorhersagen gemacht.
-        """
         pred, features = self.single_pass(x)
         uncertainty = self.uncertainty_head(features)
         return pred, uncertainty
-        
+
+    '''
+    Function which predicts label for batch of samples and features that can be used by classification head
+    Necessary in different other functions
+        Call with: 
+        x --> batch of samples to be classified
+    Returns: 
+        pred --> prediction on batch 
+        features --> features extracted by the feature extractor
+    '''
     def single_pass(self, x):
-        x = F.relu(self.feature_extractor(x))
-        output = self.regression_head(x)
-        return output, x
-        
+        features = F.relu(self.feature_extractor(x))
+        pred = self.regression_head(features)
+        return pred, features
+         
+    '''
+    Forward pass of model
+    Makes prediction on data point and estimates uncertainty
+    Call with: 
+        x --> batch of samples to be classified
+    Returns: 
+        pred --> prediction on batch 
+        uncertainty --> uncertainty for predictions
+    '''
     def forward(self, x):
         x = F.relu(self.feature_extractor(x))
         pred = self.regression_head(x)
         un = self.uncertainty_head(x)
         return pred, un
-    
-    def get_uncertainty_metrics(self, 
+         
+    '''
+    Function which makes prediction with MC dropout 
+    Function is required by function test_perforamance
+    Call with: 
+         x --> batch of samples to be classified
+     Returns: 
+          mean_preds --> mean predictions on each sample 
+          sigma --> std from MC dropout
+          mean_features --> mean features extracted by feature extractor (required for uncertainty head)
+    '''
+    def get_mc_features(self, 
                                 x):
-        """
-        Berechnet Entropie und Mutual Information über mehrere Vorhersagen hinweg.
-        
-        Args:
-            model: Das trainierte Modell mit aktivem Dropout.
-            input_data: Die Eingabedaten (ein einzelnes Bild oder ein Batch).
-            n_samples: Anzahl der Forward-Passes mit aktivem Dropout.
-        
-        Returns:
-            mean_entropy: Erwartungswert der Entropie über alle Vorhersagen.
-            mutual_information: Mutual Information (Informationsgewinn).
-        """
         self.train()
     
         # Liste zum Speichern der Softmax-Wahrscheinlichkeiten
         preds = []
         features = []
-        # Mehrere Forward-Passes mit aktivem Dropout
         for _ in range(self.num_samples):
             with torch.no_grad():
                 pred, feature = self.single_pass(x)  # Vorhersage mit Dropout
@@ -339,7 +389,6 @@ class UQNN(nn.Module):
                 
         mean_features = torch.stack(features)
         mean_features = mean_features.mean(dim = 0)
-        # Umwandlung in Tensor (Shape: [n_samples, batch_size, num_classes])
         preds = torch.stack(preds)
         mean_preds = torch.mean(preds, axis = 0)
         sigma = preds.std(dim=0)
@@ -355,7 +404,7 @@ class UQNN(nn.Module):
         uncertainties = []
         labels = []
         for x, y in iter(data_loader):
-            pred, sigma, feature = self.get_uncertainty_metrics(x)
+            pred, sigma, feature = self.get_mc_features(x)
             preds.append(pred)    
             #classes.extend([c.item() for c in classes])
             labels.extend([elem.item() for elem in y])
