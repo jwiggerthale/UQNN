@@ -124,7 +124,7 @@ np.random.seed(1)
 #Get data
 print ("Loading data and other hyperparameters...")
 # Data and related information
-file_path = '/t1/erlangen/users/jwiggerthale/TestDatasets/bostonHousing/data'
+file_path = './data/boston_housing'
 data = np.loadtxt(f'{file_path}/data.txt')
 index_features = np.loadtxt(f'{file_path}/index_features.txt')
 n_splits = np.loadtxt(f'{file_path}/n_splits.txt')
