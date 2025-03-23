@@ -206,7 +206,7 @@ class UQNN(nn.Module):
             return labels, mus, sigmas, uncertainties
     
     '''
-    Function to make predictuion using MC dropout
+    Function to make prediction using MC dropout
     Not really necessary for the model
     May be useful if you want to test something or apply MC dropout instead of uncertaity head
     Call with: 
