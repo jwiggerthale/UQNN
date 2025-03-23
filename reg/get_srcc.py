@@ -115,8 +115,8 @@ def get_dataloader(x, y,
 
 
 #Reproducibility
-torch.manual_seed(1)
-np.random.seed(1)
+torch.manual_seed(17)
+np.random.seed(17)
 
 #Get data
 print ("Loading data and other hyperparameters...")
