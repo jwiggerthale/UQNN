@@ -99,6 +99,7 @@ def evaluate(
         fwd = lambda im: ensemble_fwd(model_list, im)
 
     #Get prediction and uncertainy for each sample
+    start = datetime.now()
     for x, y in iter(dataloader):
       if isinstance(x, list):
           for im in x:
@@ -117,8 +118,10 @@ def evaluate(
         predictions = [elem.argmax().item() for elem in pred]
         classes.extend([elem.argmax().item() for elem in pred])
         uncertainties.extend([u[predictions[i]].item() for i, u in enumerate(uncertainty)])
-  
-  
+    end = datetime.now()
+    duration = end -start
+    print(f'{model_type}: \ntook {duration}\n\n')
+    
     # Use vectorized NumPy containers
     labels = np.array(labels)
     preds = np.array(preds)
