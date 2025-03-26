@@ -48,8 +48,7 @@ class UQNN(nn.Module):
         self.feature_extractor = LeNet5()
         self.classification_head = nn.Sequential(nn.Linear(84, 60), 
                                                  nn.ReLU(), 
-                                                 nn.Linear(60, num_classes), 
-                                                 nn.Softmax()
+                                                 nn.Linear(60, num_classes)
                                                  )
         
         self.uncertainty_head = nn.Sequential(
